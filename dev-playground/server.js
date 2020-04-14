@@ -4,7 +4,7 @@ var express = require('express');
 var path = require('path');
 var bodyParser = require('body-parser');
 
-var pdfmake = require('../js/index');
+var pdfMakePrinter = require('../src/printer');
 
 var app = express();
 
@@ -12,8 +12,9 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use(bodyParser.json({ limit: '50mb' }));
 app.use(bodyParser.urlencoded({ extended: false }));
 
-function createPdfBinary(docDefinition) {
-	var fonts = {
+function createPdfBinary(pdfDoc, callback) {
+
+	var fontDescriptors = {
 		Roboto: {
 			normal: path.join(__dirname, '..', 'examples', '/fonts/Roboto-Regular.ttf'),
 			bold: path.join(__dirname, '..', 'examples', '/fonts/Roboto-Medium.ttf'),
@@ -22,16 +23,28 @@ function createPdfBinary(docDefinition) {
 		}
 	};
 
-	pdfmake.setFonts(fonts);
+	var printer = new pdfMakePrinter(fontDescriptors);
 
-	var pdf = pdfmake.createPdf(docDefinition);
-	return pdf.getDataUrl();
+	var doc = printer.createPdfKitDocument(pdfDoc);
+
+	var chunks = [];
+	var result;
+
+	doc.on('data', function (chunk) {
+		chunks.push(chunk);
+	});
+	doc.on('end', function () {
+		result = Buffer.concat(chunks);
+		callback('data:application/pdf;base64,' + result.toString('base64'));
+	});
+	doc.end();
+
 }
 
 app.post('/pdf', function (req, res) {
 	eval(req.body.content);
 
-	createPdfBinary(dd).then(function (binary) {
+	createPdfBinary(dd, function (binary) {
 		res.contentType('application/pdf');
 		res.send(binary);
 	}, function (error) {
@@ -44,5 +57,4 @@ var server = http.createServer(app);
 var port = process.env.PORT || 1234;
 server.listen(port);
 
-console.log('http server listening on port %d', port);
-console.log('dev-playground is available at http://localhost:%d', port);
+console.log('http server listening on %d', port);

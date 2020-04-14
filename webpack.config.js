@@ -30,29 +30,6 @@ module.exports = {
 	},
 	module: {
 		rules: [
-			{
-				enforce: 'pre',
-				test: /\.js$/,
-				exclude: /node_modules/,
-				use: {
-					loader: 'babel-loader',
-					options: {
-						presets: [
-							[
-								"@babel/preset-env",
-								{
-									targets: {
-										"ie": "11"
-									},
-									modules: false,
-									useBuiltIns: 'usage',
-									loose: true
-								}
-							]
-						]
-					}
-				}
-			},
 			// for fs don't use babel _interopDefault command
 			{
 				enforce: 'pre',
@@ -65,12 +42,11 @@ module.exports = {
 								return "var fs = require('fs');";
 							}
 						}
-					]
-				})
+					]})
 			},
 			{
 				test: /\.js$/,
-				include: /(pdfkit|saslprep|unicode-trie|unicode-properties|dfa|linebreak|png-js)/,
+				include: /(pdfkit|saslprep|unicode-trie|unicode-properties|dfa|linebreak)/,
 				use: {
 					loader: 'babel-loader',
 					options: {
@@ -79,7 +55,7 @@ module.exports = {
 								"@babel/preset-env",
 								{
 									targets: {
-										"ie": "11"
+										"ie": "10"
 									},
 									modules: false,
 									useBuiltIns: 'usage',
@@ -91,11 +67,11 @@ module.exports = {
 					}
 				}
 			},
-			{ test: /pdfMake.js$/, loader: 'expose-loader?pdfMake', include: [path.join(__dirname, './src/browser-extensions')] },
+			{test: /pdfMake.js$/, loader: 'expose-loader?pdfMake', include: [path.join(__dirname, './src/browser-extensions')]},
+
 			/* temporary bugfix for FileSaver: added hack for mobile device support, see https://github.com/bpampuch/pdfmake/issues/1664 */
 			/* waiting to merge and release PR https://github.com/eligrey/FileSaver.js/pull/533 */
-			{
-				test: /FileSaver.min.js$/, loader: StringReplacePlugin.replace({
+			{test: /FileSaver.min.js$/, loader: StringReplacePlugin.replace({
 					replacements: [
 						{
 							pattern: '"download"in HTMLAnchorElement.prototype',
@@ -103,13 +79,12 @@ module.exports = {
 								return '(typeof HTMLAnchorElement !== "undefined" && "download" in HTMLAnchorElement.prototype)';
 							}
 						}
-					]
-				})
+					]})
 			},
 
-			{ enforce: 'post', test: /fontkit[/\\]index.js$/, loader: "transform-loader?brfs" },
-			{ enforce: 'post', test: /unicode-properties[/\\]index.js$/, loader: "transform-loader?brfs" },
-			{ enforce: 'post', test: /linebreak[/\\]src[/\\]linebreaker.js/, loader: "transform-loader?brfs" }
+			{enforce: 'post', test: /fontkit[/\\]index.js$/, loader: "transform-loader?brfs"},
+			{enforce: 'post', test: /unicode-properties[/\\]index.js$/, loader: "transform-loader?brfs"},
+			{enforce: 'post', test: /linebreak[/\\]src[/\\]linebreaker.js/, loader: "transform-loader?brfs"}
 		]
 	},
 	optimization: {
@@ -118,9 +93,6 @@ module.exports = {
 				include: /\.min\.js$/,
 				sourceMap: true,
 				uglifyOptions: {
-					output: {
-						comments: /^! pdfmake/
-					},
 					compress: {
 						drop_console: true
 					},

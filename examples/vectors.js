@@ -7,8 +7,9 @@ var fonts = {
 	}
 };
 
-var pdfmake = require('../js/index');
-pdfmake.setFonts(fonts);
+var PdfPrinter = require('../src/printer');
+var printer = new PdfPrinter(fonts);
+var fs = require('fs');
 
 
 var docDefinition = {
@@ -111,7 +112,7 @@ var docDefinition = {
 					x: 260, y: 140,
 					r1: 30, r2: 20,
 					linearGradient: ['red', 'green', 'blue', 'red'],
-				}
+				},
 			]
 		},
 		'This text should be rendered under canvas',
@@ -128,9 +129,6 @@ var docDefinition = {
 	}
 };
 
-var now = new Date();
-
-var pdf = pdfmake.createPdf(docDefinition);
-pdf.write('pdfs/vectors.pdf');
-
-console.log(new Date() - now);
+var pdfDoc = printer.createPdfKitDocument(docDefinition);
+pdfDoc.pipe(fs.createWriteStream('pdfs/vectors.pdf'));
+pdfDoc.end();

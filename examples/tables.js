@@ -7,8 +7,9 @@ var fonts = {
 	}
 };
 
-var pdfmake = require('../js/index');
-pdfmake.setFonts(fonts);
+var PdfPrinter = require('../src/printer');
+var printer = new PdfPrinter(fonts);
+var fs = require('fs');
 
 var docDefinition = {
 	content: [
@@ -291,59 +292,6 @@ var docDefinition = {
 			layout: {
 				fillColor: function (rowIndex, node, columnIndex) {
 					return (rowIndex % 2 === 0) ? '#CCCCCC' : null;
-				}
-			}
-		},
-		{ text: 'handling fill color opacity...', margin: [0, 20, 0, 8] },
-		{ text: '... just hardcoding values in the second row', margin: [0, 20, 0, 8] },
-		{
-			style: 'tableExample',
-			table: {
-				body: [
-					['Sample value 1', 'Sample value 2', 'Sample value 3'],
-					[
-						{text: 'Sample value 1',fillOpacity:0.15,fillColor:'blue'},
-						{text: 'Sample value 2',fillOpacity:0.60,fillColor:'blue'},
-						{text: 'Sample value 3',fillOpacity:0.85,fillColor:'blue'},
-					],
-					['Sample value 1', 'Sample value 2', 'Sample value 3']
-				]
-			},
-		},	
-		{ text: '... using a custom styler and overriding it in the second row', margin: [0, 20, 0, 8] },
-		{
-			style: 'tableOpacityExample',
-			table: {
-				body: [
-					['Sample value 1', 'Sample value 2', 'Sample value 3'],
-					[
-						{text: 'Sample value 1',fillOpacity:0.15},
-						{text: 'Sample value 2',fillOpacity:0.60},
-						{text: 'Sample value 3',fillOpacity:0.85},
-					],
-					['Sample value 1', 'Sample value 2', 'Sample value 3']
-				]
-			},
-		},
-		{ text: '... with a function (opacity at 0 means fully transparent, i.e no color)', margin: [0, 20, 0, 8] },
-		{
-			style: 'tableExample',
-			table: {
-				body: [
-					['Sample value 1', 'Sample value 2', 'Sample value 3'],
-					['Sample value 1', 'Sample value 2', 'Sample value 3'],
-					['Sample value 1', 'Sample value 2', 'Sample value 3'],
-					['Sample value 1', 'Sample value 2', 'Sample value 3'],
-					['Sample value 1', 'Sample value 2', 'Sample value 3'],
-					['Sample value 1', 'Sample value 2', 'Sample value 3'],
-					['Sample value 1', 'Sample value 2', 'Sample value 3'],
-					['Sample value 1', 'Sample value 2', 'Sample value 3'],
-				]
-			},
-			layout: {
-				fillColor: 'blue',
-				fillOpacity: function (rowIndex, node, columnIndex) {
-					return (rowIndex/8+columnIndex/3);
 				}
 			}
 		},
@@ -673,7 +621,7 @@ var docDefinition = {
 					],
 				],
 			},
-		}
+		},
 	],
 	styles: {
 		header: {
@@ -689,11 +637,6 @@ var docDefinition = {
 		tableExample: {
 			margin: [0, 5, 0, 15]
 		},
-		tableOpacityExample: {
-			margin: [0, 5, 0, 15],
-			fillColor: 'blue',
-			fillOpacity: 0.3
-		},
 		tableHeader: {
 			bold: true,
 			fontSize: 13,
@@ -705,9 +648,6 @@ var docDefinition = {
 	}
 };
 
-var now = new Date();
-
-var pdf = pdfmake.createPdf(docDefinition);
-pdf.write('pdfs/tables.pdf');
-
-console.log(new Date() - now);
+var pdfDoc = printer.createPdfKitDocument(docDefinition);
+pdfDoc.pipe(fs.createWriteStream('pdfs/tables.pdf'));
+pdfDoc.end();

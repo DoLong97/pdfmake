@@ -1,14 +1,21 @@
+var path = require("path");
+
+function mp(relFontPath) {
+	return path.resolve(__dirname, relFontPath)
+}
+
 var fonts = {
 	Roboto: {
-		normal: 'fonts/Roboto-Regular.ttf',
-		bold: 'fonts/Roboto-Medium.ttf',
-		italics: 'fonts/Roboto-Italic.ttf',
-		bolditalics: 'fonts/Roboto-MediumItalic.ttf'
+		normal: mp('./fonts/Roboto-Regular.ttf'),
+		bold: mp('./fonts/Roboto-Medium.ttf'),
+		italics: mp('./fonts/Roboto-Italic.ttf'),
+		bolditalics: mp('./fonts/Roboto-MediumItalic.ttf')
 	}
 };
 
-var pdfmake = require('../js/index');
-pdfmake.setFonts(fonts);
+var PdfPrinter = require('../src/printer');
+var printer = new PdfPrinter(fonts);
+var fs = require('fs');
 
 var greeting = 'Can you see me';
 var url = 'http://pdfmake.org';
@@ -42,9 +49,6 @@ var docDefinition = {
 	]
 }
 
-var now = new Date();
-
-var pdf = pdfmake.createPdf(docDefinition);
-pdf.write('pdfs/qrCode.pdf');
-
-console.log(new Date() - now);
+var pdfDoc = printer.createPdfKitDocument(docDefinition);
+pdfDoc.pipe(fs.createWriteStream(mp('./pdfs/qrCode.pdf')));
+pdfDoc.end();
